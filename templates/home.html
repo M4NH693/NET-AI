@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-auto">
+    <div class="row justify-content-center align-items-center">
+        <div class="col-lg-8 col-xl-7 text-center">
+            <!-- Hero Icon with Gradient Glow -->
+            <div class="d-inline-flex align-items-center justify-content-center mb-4 p-3 rounded-circle"
+                style="background: rgba(127, 0, 255, 0.1); border: 1px solid rgba(127, 0, 255, 0.2); width: 80px; height: 80px; box-shadow: 0 0 20px rgba(127, 0, 255, 0.2);">
+                <i class="bi bi-rocket-takeoff-fill fs-2"
+                    style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+            </div>
+
+            <!-- Dynamic Heading -->
+            <h1 class="display-4 fw-bold mb-3" id="heroTitle">
+                Khám phá <span class="logo-text">NetAI Portal</span>
+            </h1>
+
+            <!-- Dynamic Description -->
+            <p class="lead text-secondary mb-5 fs-5" id="heroDesc">
+
+            </p>
+
+            <!-- Blank Content Placeholder Card -->
+            <div class="glass-card p-5 text-center position-relative overflow-hidden mb-5">
+                <div class="position-absolute top-0 start-0 w-100 h-100 bg-gradient d-flex align-items-center justify-content-center opacity-10"
+                    style="background: linear-gradient(135deg, rgba(127, 0, 255, 0.1) 0%, rgba(0, 198, 255, 0.1) 100%); pointer-events: none;">
+                </div>
+
+                <div class="position-relative z-1 py-4">
+                    <i class="bi bi-layout-wtf fs-1 text-secondary opacity-50 mb-3"></i>
+                    <h3 class="h5 fw-semibold text-light mb-2">Nội dung trang chủ trống</h3>
+                    <p class="text-secondary small mb-0 mx-auto" style="max-width: 450px;">
+                        khu vực thử nghiệm ai
+                    </p>
+                </div>
+            </div>
+
+            <!-- Dynamic CTA Buttons -->
+            <div class="d-flex flex-wrap justify-content-center gap-3" id="heroActions">
+                <!-- Fallback Loading spinner -->
+                <div class="spinner-border text-light opacity-50" role="status"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    async function initPage() {
+        const user = await getCurrentUser();
+        const heroTitle = document.getElementById('heroTitle');
+        const heroDesc = document.getElementById('heroDesc');
+        const heroActions = document.getElementById('heroActions');
+
+        if (user) {
+            // Render authenticated UI
+            const displayName = user.full_name || user.username;
+            heroTitle.innerHTML = `Chào mừng trở lại, <span class="logo-text">${escapeHtml(displayName)}</span>!`;
+            heroDesc.innerText = 'Tài khoản của bạn đã được xác thực thành công qua JWT Token (LocalStorage). Đây là khu vực trang chủ trống của bạn. Bạn có thể bắt đầu xây dựng nội dung ngay tại đây.';
+
+            heroActions.innerHTML = `
+                <a href="/account" class="btn btn-premium px-4 py-2-5">
+                    <i class="bi bi-gear-fill me-2"></i>Quản lý tài khoản
+                </a>
+                <button class="btn btn-outline-premium px-4 py-2-5" onclick="logout()">
+                    <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+                </button>
+            `;
+        } else {
+            // Render guest UI
+            heroTitle.innerHTML = `Khám phá <span class="logo-text">NetAI Portal</span>`;
+            heroDesc.innerText = 'Hệ thống cổng thông tin tích hợp xác thực JWT bảo mật cao. Hãy đăng ký một tài khoản mới để trải nghiệm các dịch vụ của chúng tôi.';
+
+            heroActions.innerHTML = `
+                <a href="/register" class="btn btn-premium px-4 py-2-5">
+                    <i class="bi bi-person-plus-fill me-2"></i>Đăng ký tài khoản mới
+                </a>
+                <a href="/login" class="btn btn-outline-premium px-4 py-2-5">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập ngay
+                </a>
+            `;
+        }
+    }
+
+    // Run initialization
+    initPage();
+</script>
+{% endblock extra_js %}

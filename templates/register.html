@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-auto">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 col-xl-5">
+            <!-- Glassmorphism Form Card -->
+            <div class="glass-card p-4 p-sm-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-plus-fill fs-1"
+                        style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                    <h2 class="h3 fw-bold mt-2 text-light">Đăng ký tài khoản</h2>
+                    <p class="text-secondary fs-7">Tham gia cổng kết nối NetAI Portal</p>
+                </div>
+
+                <!-- Alert Message Area -->
+                <div id="alertBox" class="alert d-none alert-custom" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i id="alertIcon" class="bi me-2 fs-5"></i>
+                        <span id="alertMessage"></span>
+                    </div>
+                </div>
+
+                <form id="registerForm" onsubmit="submitRegister(event)">
+                    <!-- Full Name -->
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="fullNameInput" placeholder="Nguyễn Văn A"
+                            name="full_name">
+                        <label for="fullNameInput"><i class="bi bi-person me-2"></i>Họ và tên</label>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="usernameInput" placeholder="username" required
+                            name="username" minlength="3" maxlength="50">
+                        <label for="usernameInput"><i class="bi bi-person-badge me-2"></i>Tên đăng nhập *</label>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="emailInput" placeholder="name@example.com" required
+                            name="email">
+                        <label for="emailInput"><i class="bi bi-envelope me-2"></i>Địa chỉ Email *</label>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control" id="passwordInput" placeholder="Password" required
+                            name="password" minlength="8">
+                        <label for="passwordInput"><i class="bi bi-lock me-2"></i>Mật khẩu *</label>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="form-floating mb-4">
+                        <input type="password" class="form-control" id="confirmPasswordInput"
+                            placeholder="Confirm Password" required minlength="8">
+                        <label for="confirmPasswordInput"><i class="bi bi-shield-lock me-2"></i>Xác nhận mật khẩu
+                            *</label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="btnSubmit"
+                        class="btn btn-premium w-100 py-3 mb-3 d-flex align-items-center justify-content-center gap-2">
+                        <span>Đăng ký</span>
+                        <div id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></div>
+                    </button>
+
+                    <div class="text-center mt-3">
+                        <p class="text-secondary small mb-0">
+                            Đã có tài khoản? <a href="/login" class="text-decoration-none"
+                                style="color: #E100FF; font-weight: 500;">Đăng nhập</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    // Guest-only page check
+    checkAuth(false);
+
+    async function submitRegister(event) {
+        event.preventDefault();
+
+        const alertBox = document.getElementById('alertBox');
+        const alertIcon = document.getElementById('alertIcon');
+        const alertMessage = document.getElementById('alertMessage');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const btnSpinner = document.getElementById('btnSpinner');
+
+        // Form inputs
+        const fullName = document.getElementById('fullNameInput').value.trim();
+        const username = document.getElementById('usernameInput').value.trim();
+        const email = document.getElementById('emailInput').value.trim();
+        const password = document.getElementById('passwordInput').value;
+        const confirmPassword = document.getElementById('confirmPasswordInput').value;
+
+        // Hide previous alert
+        alertBox.classList.add('d-none');
+        alertBox.className = 'alert alert-custom';
+
+        // Client-side passwords match check
+        if (password !== confirmPassword) {
+            showAlert('Mật khẩu và xác nhận mật khẩu không trùng khớp.', 'error');
+            return;
+        }
+
+        // Show loading state
+        btnSubmit.disabled = true;
+        btnSpinner.classList.remove('d-none');
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    full_name: fullName || null,
+                    username: username,
+                    email: email,
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert('Đăng ký tài khoản thành công! Đang chuyển hướng đến trang đăng nhập...', 'success');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            } else {
+                // If validation or error details are returned
+                const errorDetail = data.detail;
+                let errorMsg = 'Đã có lỗi xảy ra. Vui lòng kiểm tra lại.';
+
+                if (typeof errorDetail === 'string') {
+                    errorMsg = errorDetail;
+                } else if (Array.isArray(errorDetail)) {
+                    errorMsg = errorDetail.map(err => `${err.loc.join('.')}: ${err.msg}`).join('<br>');
+                }
+
+                showAlert(errorMsg, 'error');
+                btnSubmit.disabled = false;
+                btnSpinner.classList.add('d-none');
+            }
+        } catch (error) {
+            console.error('Lỗi kết nối:', error);
+            showAlert('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.', 'error');
+            btnSubmit.disabled = false;
+            btnSpinner.classList.add('d-none');
+        }
+    }
+
+    function showAlert(message, type) {
+        const alertBox = document.getElementById('alertBox');
+        const alertIcon = document.getElementById('alertIcon');
+        const alertMessage = document.getElementById('alertMessage');
+
+        alertMessage.innerHTML = message;
+        alertBox.classList.remove('d-none');
+
+        if (type === 'success') {
+            alertBox.classList.add('alert-success');
+            alertIcon.className = 'bi bi-check-circle-fill text-success';
+        } else {
+            alertBox.classList.add('alert-danger');
+            alertIcon.className = 'bi bi-exclamation-triangle-fill text-danger';
+        }
+    }
+</script>
+{% endblock extra_js %}

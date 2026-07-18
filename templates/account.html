@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-auto">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <!-- Glassmorphism Form Card -->
+            <div class="glass-card p-4 p-sm-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-gear fs-1"
+                        style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                    <h2 class="h3 fw-bold mt-2 text-light">Quản lý tài khoản</h2>
+                    <p class="text-secondary fs-7">Cập nhật thông tin cá nhân và mật khẩu của bạn</p>
+                </div>
+
+                <!-- Alert Message Area -->
+                <div id="alertBox" class="alert d-none alert-custom" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i id="alertIcon" class="bi me-2 fs-5"></i>
+                        <span id="alertMessage"></span>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Left: Profile Read Only details & Avatar -->
+                    <div class="col-md-5 border-end border-secondary border-opacity-10 pe-md-4 text-center text-md-start">
+                        <h4 class="h6 fw-semibold text-secondary text-uppercase mb-3">Ảnh đại diện</h4>
+                        
+                        <!-- Avatar Display & Upload Area -->
+                        <div class="position-relative d-inline-block mb-4">
+                            <img id="avatarPreview" src="/static/profile_pics/default.jpg" alt="Avatar" class="rounded-circle border border-secondary border-opacity-20 shadow" style="width: 150px; height: 150px; object-fit: cover;">
+                            <label for="avatarUploadInput" class="position-absolute bottom-0 end-0 bg-primary bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 38px; height: 38px; cursor: pointer; border: 2px solid var(--bg-dark);">
+                                <i class="bi bi-camera-fill"></i>
+                            </label>
+                            <input type="file" id="avatarUploadInput" class="d-none" accept="image/*" onchange="uploadAvatarFile(this)">
+                            
+                            <!-- Upload Progress Spinner Overlay -->
+                            <div id="avatarSpinner" class="position-absolute top-50 start-50 translate-middle d-none bg-dark bg-opacity-75 rounded-circle d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
+                                <div class="spinner-border text-info" role="status" style="width: 2rem; height: 2rem;"></div>
+                            </div>
+                        </div>
+
+                        <h4 class="h6 fw-semibold text-secondary text-uppercase mb-3">Thông tin hệ thống</h4>
+
+                        <div class="mb-3">
+                            <label class="text-secondary small mb-1">Tên đăng nhập</label>
+                            <div class="p-3 bg-dark bg-opacity-40 rounded border border-secondary border-opacity-10 text-light fw-medium"
+                                id="usernameText">
+                                <span class="spinner-border spinner-border-sm text-secondary opacity-50"
+                                    role="status"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="text-secondary small mb-1">Địa chỉ Email</label>
+                            <div class="p-3 bg-dark bg-opacity-40 rounded border border-secondary border-opacity-10 text-light fw-medium text-truncate"
+                                id="emailText">
+                                <span class="spinner-border spinner-border-sm text-secondary opacity-50"
+                                    role="status"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="text-secondary small mb-1">Ngày tham gia</label>
+                            <div class="p-3 bg-dark bg-opacity-40 rounded border border-secondary border-opacity-10 text-light fw-medium"
+                                id="joinedDateText">
+                                <span class="spinner-border spinner-border-sm text-secondary opacity-50"
+                                    role="status"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Profile Edit form -->
+                    <div class="col-md-7 ps-md-4">
+                        <h4 class="h6 fw-semibold text-secondary text-uppercase mb-3">Cập nhật thông tin</h4>
+
+                        <form id="profileForm" onsubmit="submitUpdateProfile(event)">
+                            <!-- Full Name -->
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="fullNameInput" placeholder="Nguyễn Văn A">
+                                <label for="fullNameInput"><i class="bi bi-person me-2"></i>Họ và tên</label>
+                            </div>
+
+                            <hr class="my-4 border-secondary border-opacity-15">
+
+                            <h4 class="h6 fw-semibold text-secondary text-uppercase mb-3">Thay đổi mật khẩu</h4>
+
+                            <!-- New Password -->
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="passwordInput"
+                                    placeholder="New Password" minlength="8">
+                                <label for="passwordInput"><i class="bi bi-lock me-2"></i>Mật khẩu mới (để trống nếu
+                                    không đổi)</label>
+                            </div>
+
+                            <!-- Confirm New Password -->
+                            <div class="form-floating mb-4">
+                                <input type="password" class="form-control" id="confirmPasswordInput"
+                                    placeholder="Confirm New Password" minlength="8">
+                                <label for="confirmPasswordInput"><i class="bi bi-shield-lock me-2"></i>Xác nhận mật
+                                    khẩu mới</label>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" id="btnSubmit"
+                                class="btn btn-premium w-100 py-3 d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Lưu thay đổi</span>
+                                <div id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status">
+                                </div>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    let currentUser = null;
+
+    async function loadProfile() {
+        // Require authentication, redirect to login if not logged in
+        currentUser = await checkAuth(true);
+        if (!currentUser) return;
+
+        // Populate read-only fields
+        document.getElementById('usernameText').innerText = currentUser.username;
+        document.getElementById('emailText').innerText = currentUser.email;
+
+        // Populate avatar preview
+        const avatarUrl = currentUser.avatar_url ? `/media/profile_pics/${currentUser.avatar_url}` : '/static/profile_pics/default.jpg';
+        document.getElementById('avatarPreview').src = avatarUrl;
+
+        // Formatted joined date
+        if (currentUser.created_at) {
+            const date = new Date(currentUser.created_at);
+            document.getElementById('joinedDateText').innerText = date.toLocaleDateString('vi-VN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Populate inputs
+        document.getElementById('fullNameInput').value = currentUser.full_name || '';
+    }
+
+    async function uploadAvatarFile(input) {
+        if (!input.files || !input.files[0]) return;
+        
+        const file = input.files[0];
+        const alertBox = document.getElementById('alertBox');
+        const spinner = document.getElementById('avatarSpinner');
+        
+        // Hide previous alert
+        alertBox.classList.add('d-none');
+        alertBox.className = 'alert alert-custom';
+        
+        // Show loading spinner overlay
+        spinner.classList.remove('d-none');
+        
+        const token = getToken();
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('/api/auth/avatar', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                showAlert('Cập nhật ảnh đại diện thành công!', 'success');
+                currentUser = data;
+                
+                // Update avatar preview
+                const newAvatarUrl = data.avatar_url ? `/media/profile_pics/${data.avatar_url}` : '/static/profile_pics/default.jpg';
+                document.getElementById('avatarPreview').src = newAvatarUrl;
+                
+                // Update navigation bar
+                updateNavbar();
+            } else {
+                const errorMsg = data.detail || 'Không thể tải ảnh đại diện lên.';
+                showAlert(errorMsg, 'error');
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải ảnh:', error);
+            showAlert('Lỗi kết nối đến máy chủ. Vui lòng thử lại sau.', 'error');
+        } finally {
+            spinner.classList.add('d-none');
+            // Reset input value to allow uploading same file again
+            input.value = '';
+        }
+    }
+
+    async function submitUpdateProfile(event) {
+        event.preventDefault();
+
+        const alertBox = document.getElementById('alertBox');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const btnSpinner = document.getElementById('btnSpinner');
+
+        const fullName = document.getElementById('fullNameInput').value.trim();
+        const password = document.getElementById('passwordInput').value;
+        const confirmPassword = document.getElementById('confirmPasswordInput').value;
+
+        // Hide alert
+        alertBox.classList.add('d-none');
+        alertBox.className = 'alert alert-custom';
+
+        // Password confirmation check
+        if (password) {
+            if (password !== confirmPassword) {
+                showAlert('Mật khẩu mới và xác nhận mật khẩu mới không trùng khớp.', 'error');
+                return;
+            }
+        }
+
+        // Show loading state
+        btnSubmit.disabled = true;
+        btnSpinner.classList.remove('d-none');
+
+        const token = getToken();
+        const bodyData = {
+            full_name: fullName || null
+        };
+
+        if (password) {
+            bodyData.password = password;
+        }
+
+        try {
+            const response = await fetch('/api/auth/me', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(bodyData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert('Cập nhật thông tin tài khoản thành công!', 'success');
+                currentUser = data;
+
+                // Clear password fields
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('confirmPasswordInput').value = '';
+
+                // Update global navbar
+                updateNavbar();
+            } else {
+                const errorDetail = data.detail || 'Không thể cập nhật thông tin. Vui lòng kiểm tra lại.';
+                showAlert(errorDetail, 'error');
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật:', error);
+            showAlert('Lỗi kết nối đến máy chủ. Vui lòng thử lại sau.', 'error');
+        } finally {
+            btnSubmit.disabled = false;
+            btnSpinner.classList.add('d-none');
+        }
+    }
+
+    function showAlert(message, type) {
+        const alertBox = document.getElementById('alertBox');
+        const alertIcon = document.getElementById('alertIcon');
+        const alertMessage = document.getElementById('alertMessage');
+
+        alertMessage.innerHTML = message;
+        alertBox.classList.remove('d-none');
+
+        if (type === 'success') {
+            alertBox.classList.add('alert-success');
+            alertIcon.className = 'bi bi-check-circle-fill text-success';
+        } else {
+            alertBox.classList.add('alert-danger');
+            alertIcon.className = 'bi bi-exclamation-triangle-fill text-danger';
+        }
+    }
+
+    // Load profile on page load
+    loadProfile();
+</script>
+{% endblock extra_js %}

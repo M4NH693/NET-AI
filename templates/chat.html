@@ -1,0 +1,882 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    /* Pygments syntax highlighting styles */
+    .codehilite {
+        background: rgba(0, 0, 0, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 12px;
+        margin: 12px 0;
+        overflow-x: auto;
+    }
+    .codehilite pre {
+        margin: 0;
+        padding: 0;
+        background: transparent !important;
+        border: none !important;
+    }
+    .codehilite .k { color: #ff7b72; font-weight: bold; } /* Keyword */
+    .codehilite .n { color: #c9d1d9; } /* Name */
+    .codehilite .s { color: #a5d6ff; } /* String */
+    .codehilite .c { color: #8b949e; font-style: italic; } /* Comment */
+    .codehilite .nt { color: #7ee787; } /* Tag */
+    .codehilite .o { color: #ff7b72; } /* Operator */
+    .codehilite .m { color: #a5d6ff; } /* Number */
+    .codehilite .nb { color: #79c0ff; } /* Built-in */
+    .codehilite .nf { color: #d2a8ff; } /* Function */
+
+    /* Premium Chat Page Layout */
+    .chat-wrapper {
+        height: 75vh;
+        min-height: 500px;
+        background: rgba(15, 22, 38, 0.4);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    
+    .sidebar-conversations {
+        background: rgba(11, 15, 25, 0.6);
+        overflow-y: auto;
+    }
+    
+    .conversation-item {
+        transition: all 0.25s ease;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        cursor: pointer;
+    }
+    
+    .conversation-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .conversation-item.active {
+        background: rgba(0, 198, 255, 0.08);
+        border-color: rgba(0, 198, 255, 0.2);
+    }
+    
+    .chat-messages-container {
+        overflow-y: auto;
+        flex-grow: 1;
+        scroll-behavior: smooth;
+    }
+    
+    /* Message styling */
+    .msg-bubble {
+        max-width: 80%;
+        border-radius: 14px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        line-height: 1.5;
+        font-size: 0.95rem;
+    }
+    
+    .msg-user {
+        background: var(--primary-gradient);
+        color: white;
+        border-bottom-right-radius: 2px;
+        box-shadow: 0 4px 15px rgba(0, 198, 255, 0.2);
+    }
+    
+    .msg-model {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: #e2e8f0;
+        border-bottom-left-radius: 2px;
+    }
+    
+    .msg-model pre {
+        background: rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 12px;
+        margin: 12px 0;
+        overflow-x: auto;
+    }
+    
+    .msg-model code {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+    }
+    
+    .chat-input-area {
+        background: rgba(11, 15, 25, 0.8);
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Quick suggestions card */
+    .suggestion-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .suggestion-card:hover {
+        background: rgba(0, 198, 255, 0.05);
+        border-color: rgba(0, 198, 255, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    /* Mermaid diagram container */
+    .mermaid-container {
+        background: rgba(15, 22, 38, 0.6);
+        border: 1px solid rgba(0, 198, 255, 0.15);
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        text-align: center;
+        overflow-x: auto;
+    }
+    
+    /* Typing indicator */
+    .typing-indicator span {
+        height: 8px;
+        width: 8px;
+        float: left;
+        margin: 0 1px;
+        background-color: #94a3b8;
+        display: block;
+        border-radius: 50%;
+        opacity: 0.4;
+        animation: typing 1s infinite;
+    }
+    
+    .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+        0% { transform: translateY(0px); opacity: 0.4; }
+        50% { transform: translateY(-5px); opacity: 1; }
+        100% { transform: translateY(0px); opacity: 0.4; }
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container my-auto">
+    <!-- Alert Box for Notifications -->
+    <div id="chatAlertBox" class="alert d-none alert-custom mb-3" role="alert">
+        <div class="d-flex align-items-center">
+            <i id="chatAlertIcon" class="bi me-2 fs-5"></i>
+            <span id="chatAlertMessage"></span>
+        </div>
+    </div>
+
+    <!-- Main Container Grid -->
+    <div class="row chat-wrapper g-0">
+        
+        <!-- SIDEBAR: Conversations List -->
+        <div class="col-md-4 col-lg-3 sidebar-conversations d-flex flex-column border-end border-secondary border-opacity-10 h-100">
+            <!-- Header sidebar -->
+            <div class="p-3 border-bottom border-secondary border-opacity-10 d-flex align-items-center justify-content-between">
+                <span class="fw-bold text-light text-uppercase tracking-wider fs-7">Hội thoại</span>
+                <button onclick="createNewConversation()" class="btn btn-sm btn-outline-premium py-1 px-2 d-flex align-items-center gap-1">
+                    <i class="bi bi-plus-lg"></i>
+                    <span>Mới</span>
+                </button>
+            </div>
+            
+            <!-- List Scroll area -->
+            <div class="flex-grow-1 p-2" id="conversationsList" style="overflow-y: auto;">
+                <!-- Loaded dynamically -->
+                <div class="text-center py-4 text-secondary opacity-50">
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CHAT AREA -->
+        <div class="col-md-8 col-lg-9 d-flex flex-column justify-content-between position-relative h-100" style="overflow: hidden;">
+            
+            <!-- Welcome Panel (When no active conversation) -->
+            <div id="welcomePanel" class="flex-grow-1 d-flex flex-column align-items-center justify-content-center p-4 text-center">
+                <i class="bi bi-cpu fs-1 mb-3" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                <h3 class="fw-bold text-light">Trợ lý Kỹ sư Mạng AI</h3>
+                <p class="text-secondary col-md-8 mx-auto fs-7">Tôi là trợ lý ảo chuyên sâu về mạng máy tính (CCNA, CCNP, OSPF, BGP, Cisco, STP, NAT...). Hãy chọn hội thoại bên trái hoặc thử các câu hỏi gợi ý bên dưới.</p>
+                
+                <div class="row g-3 mt-4 w-100 col-md-10 justify-content-center">
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="p-3 suggestion-card text-start h-100" onclick="startQuickChat('Cấu hình định tuyến OSPF trên Router Cisco')">
+                            <span class="text-info fw-bold fs-7 block mb-1">Cấu hình OSPF</span>
+                            <p class="text-secondary small mb-0 fs-8">Tìm hiểu và sinh các lệnh cấu hình OSPF đơn vùng trên Cisco IOS.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="p-3 suggestion-card text-start h-100" onclick="startQuickChat('Giải thích chi tiết nguyên lý hoạt động của STP (Spanning Tree Protocol)')">
+                            <span class="text-info fw-bold fs-7 block mb-1">Spanning Tree (STP)</span>
+                            <p class="text-secondary small mb-0 fs-8">Giải thích cách chuyển mạch STP bầu chọn Root Bridge và chặn cổng lặp loop.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="p-3 suggestion-card text-start h-100" onclick="startQuickChat('Hướng dẫn từng bước tính toán chia địa chỉ IP subnet')">
+                            <span class="text-info fw-bold fs-7 block mb-1">Chia Subnetting</span>
+                            <p class="text-secondary small mb-0 fs-8">Xem giải thích toán logic nhị phân chia mạng con IP chi tiết từng bước.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Active Chat Screen (Initially hidden) -->
+            <div id="activeChatScreen" class="flex-grow-1 d-flex flex-column d-none" style="height: 100%; overflow: hidden;">
+                
+                <!-- Chat Screen Header -->
+                <div class="p-3 border-bottom border-secondary border-opacity-10 d-flex align-items-center justify-content-between bg-dark bg-opacity-20">
+                    <div>
+                        <h5 class="m-0 text-light fw-bold fs-6" id="activeChatTitle">Cuộc trò chuyện</h5>
+                        <small class="text-secondary fs-8">Mô hình: gemini-3.1-flash-lite</small>
+                    </div>
+                </div>
+                
+                <!-- Messages Container -->
+                <div class="chat-messages-container p-3 flex-grow-1" id="messagesBox">
+                    <!-- Messages populated dynamically -->
+                </div>
+                
+                <!-- Floating Scroll to Bottom Button -->
+                <button id="btnScrollToBottom" type="button" onclick="scrollToBottomSmooth()" class="btn btn-dark btn-opacity-75 rounded-circle position-absolute d-none shadow-lg align-items-center justify-content-center border border-secondary border-opacity-20" style="bottom: 95px; right: 25px; width: 42px; height: 42px; z-index: 10;">
+                    <i class="bi bi-arrow-down-short fs-4 text-info"></i>
+                </button>
+                
+                <!-- Typing/Thinking Indicator -->
+                <div id="typingIndicator" class="px-4 py-2 bg-dark bg-opacity-10 border-top border-secondary border-opacity-5 d-none">
+                    <div class="d-flex align-items-center gap-2">
+                        <small class="text-secondary fs-8">AI đang suy nghĩ</small>
+                        <div class="typing-indicator d-flex align-items-center">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Chat Input Form -->
+                <form id="chatForm" onsubmit="sendMessage(event)" class="chat-input-area p-3">
+                    <div class="input-group">
+                        <input type="text" id="chatInput" class="form-control bg-dark bg-opacity-50 text-light border-secondary border-opacity-20 py-3 px-4 fs-7" placeholder="Nhập câu hỏi kỹ thuật mạng của bạn (ví dụ: OSPF là gì?)..." required autocomplete="off">
+                        <!-- Stop Generating Button -->
+                        <button class="btn btn-outline-danger px-3 d-none animate pulse" type="button" id="btnStopGenerating" onclick="stopGenerating()" title="Dừng phản hồi">
+                            <i class="bi bi-stop-fill fs-5"></i>
+                        </button>
+                        <button class="btn btn-premium px-4" type="submit" id="btnSend">
+                            <i class="bi bi-send-fill fs-5"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+
+<!-- Mermaid.js ESM import -->
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+    window.mermaid = mermaid;
+</script>
+
+<script>
+    // Global JavaScript Error Logger
+    window.onerror = function(message, source, lineno, colno, error) {
+        fetch('/api/debug/log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: message,
+                source: source,
+                lineno: lineno,
+                colno: colno,
+                stack: error ? error.stack : ''
+            })
+        }).catch(e => console.error('Failed to log error to server:', e));
+        return false;
+    };
+
+    window.onunhandledrejection = function(event) {
+        const error = event.reason;
+        fetch('/api/debug/log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: 'Unhandled Promise Rejection: ' + (error ? error.message || error : 'unknown'),
+                source: '',
+                lineno: 0,
+                colno: 0,
+                stack: error ? error.stack : ''
+            })
+        }).catch(e => console.error('Failed to log rejection to server:', e));
+    };
+
+    // Enforce authentication
+    checkAuth(true);
+
+    // Escape HTML helper to prevent XSS and ReferenceErrors
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    let conversations = [];
+    let activeConversationId = null;
+
+
+
+    // Page Load Initialization
+    document.addEventListener("DOMContentLoaded", () => {
+        loadConversations();
+        
+        const messagesBox = document.getElementById("messagesBox");
+        const btnScrollToBottom = document.getElementById("btnScrollToBottom");
+        if (messagesBox && btnScrollToBottom) {
+            messagesBox.addEventListener("scroll", () => {
+                // If user scrolled up by more than 150px from bottom, show the floating button
+                const threshold = 150;
+                const isNearBottom = messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight < threshold;
+                if (isNearBottom) {
+                    btnScrollToBottom.classList.add("d-none");
+                    btnScrollToBottom.classList.remove("d-flex");
+                } else {
+                    btnScrollToBottom.classList.remove("d-none");
+                    btnScrollToBottom.classList.add("d-flex");
+                }
+            });
+        }
+    });
+
+    // Load Conversations List
+    async function loadConversations() {
+        const token = getToken();
+        const listContainer = document.getElementById("conversationsList");
+        
+        try {
+            const response = await fetch('/api/chat/conversations', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                conversations = await response.json();
+                renderConversations();
+            } else {
+                showChatAlert('Không thể tải lịch sử cuộc trò chuyện.', 'error');
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải danh sách hội thoại:', error);
+            showChatAlert('Lỗi kết nối đến máy chủ.', 'error');
+        }
+    }
+
+    // Render Conversations list UI
+    function renderConversations() {
+        const listContainer = document.getElementById("conversationsList");
+        listContainer.innerHTML = '';
+        
+        if (conversations.length === 0) {
+            listContainer.innerHTML = `
+                <div class="text-center py-4 text-secondary opacity-50 small">
+                    Chưa có cuộc trò chuyện nào.
+                </div>
+            `;
+            return;
+        }
+        
+        conversations.forEach(conv => {
+            const isActive = conv.id === activeConversationId;
+            const item = document.createElement('div');
+            item.className = `conversation-item p-3 mb-2 d-flex align-items-center justify-content-between ${isActive ? 'active' : ''}`;
+            item.setAttribute('onclick', `selectConversation('${conv.id}')`);
+            
+            item.innerHTML = `
+                <div class="d-flex align-items-center gap-2 text-truncate pe-2">
+                    <i class="bi ${isActive ? 'bi-chat-left-dots-fill text-info' : 'bi-chat-left text-secondary'}"></i>
+                    <span class="text-light small text-truncate fw-medium" title="${escapeHtml(conv.title)}">${escapeHtml(conv.title)}</span>
+                </div>
+                <button onclick="deleteConversation(event, '${conv.id}')" class="btn btn-link text-secondary text-opacity-50 hover-text-danger p-0 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; border-radius: 4px;">
+                    <i class="bi bi-trash3-fill small"></i>
+                </button>
+            `;
+            listContainer.appendChild(item);
+        });
+    }
+
+    // Create New Conversation Session
+    async function createNewConversation() {
+        document.getElementById('chatAlertBox').classList.add('d-none');
+        const token = getToken();
+        
+        try {
+            const response = await fetch('/api/chat/conversations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ title: "Cuộc trò chuyện mới" })
+            });
+            
+            if (response.ok) {
+                const newConv = await response.json();
+                activeConversationId = newConv.id;
+                
+                await loadConversations();
+                selectConversation(newConv.id);
+            } else {
+                showChatAlert('Không thể tạo cuộc trò chuyện mới.', 'error');
+            }
+        } catch (error) {
+            console.error('Lỗi khi tạo cuộc trò chuyện:', error);
+            showChatAlert('Lỗi kết nối máy chủ.', 'error');
+        }
+    }
+
+    // Select Active Conversation
+    async function selectConversation(convId) {
+        // Update active id
+        activeConversationId = convId;
+        
+        // Render highlight in sidebar
+        const items = document.querySelectorAll('.conversation-item');
+        items.forEach(item => item.classList.remove('active'));
+        
+        const activeItem = conversations.find(c => c.id === convId);
+        if (activeItem) {
+            document.getElementById('activeChatTitle').innerText = activeItem.title;
+            // Highlight it in sidebar
+            renderConversations();
+        }
+        
+        // Hide welcome panel, show chat panel
+        document.getElementById('welcomePanel').classList.add('d-none');
+        document.getElementById('activeChatScreen').classList.remove('d-none');
+        
+        // Load messages
+        await loadMessages(convId);
+    }
+
+    // Fetch and Load Messages of active session
+    async function loadMessages(convId) {
+        const token = getToken();
+        const messagesBox = document.getElementById("messagesBox");
+        messagesBox.innerHTML = `
+            <div class="text-center py-5 text-secondary opacity-50">
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+            </div>
+        `;
+        
+        try {
+            const response = await fetch(`/api/chat/conversations/${convId}/messages`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const messages = await response.json();
+                renderMessages(messages);
+            } else {
+                showChatAlert('Không thể tải tin nhắn hội thoại.', 'error');
+            }
+        } catch (error) {
+            console.error('Lỗi tải tin nhắn:', error);
+            showChatAlert('Lỗi kết nối mạng.', 'error');
+        }
+    }
+
+    let currentAbortController = null;
+
+    function stopGenerating() {
+        if (currentAbortController) {
+            currentAbortController.abort();
+            currentAbortController = null;
+            
+            document.getElementById("typingIndicator").classList.add('d-none');
+            document.getElementById("btnStopGenerating").classList.add('d-none');
+        }
+    }
+
+    async function regenerateResponse() {
+        if (!activeConversationId) return;
+        document.getElementById('chatAlertBox').classList.add('d-none');
+        const token = getToken();
+        const typingIndicator = document.getElementById("typingIndicator");
+        const btnStop = document.getElementById("btnStopGenerating");
+        
+        typingIndicator.classList.remove('d-none');
+        if (btnStop) btnStop.classList.remove('d-none');
+        
+        currentAbortController = new AbortController();
+        const { signal } = currentAbortController;
+        
+        try {
+            const response = await fetch(`/api/chat/conversations/${activeConversationId}/regenerate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                await loadMessages(activeConversationId);
+            } else {
+                const data = await response.json();
+                const errorMsg = data.detail || 'Không thể tạo lại câu trả lời.';
+                showChatAlert(errorMsg, 'error');
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.log('Regenerate/Generation stopped by user.');
+            } else {
+                console.error('Lỗi tạo lại tin nhắn:', error);
+                showChatAlert('Lỗi kết nối máy chủ.', 'error');
+            }
+        } finally {
+            typingIndicator.classList.add('d-none');
+            if (btnStop) btnStop.classList.add('d-none');
+            currentAbortController = null;
+            scrollToBottom();
+        }
+    }
+
+    function appendActionButtons(bubble, msg, isLast) {
+        // 1. Add Copy code button to pre/code blocks
+        const preElements = bubble.querySelectorAll('pre');
+        preElements.forEach((pre) => {
+            pre.style.position = 'relative';
+            
+            const copyBtn = document.createElement('button');
+            copyBtn.type = 'button';
+            copyBtn.className = 'btn btn-sm btn-outline-secondary position-absolute border-0 text-secondary opacity-75';
+            copyBtn.style.top = '6px';
+            copyBtn.style.right = '6px';
+            copyBtn.style.fontSize = '0.7rem';
+            copyBtn.style.padding = '2px 6px';
+            copyBtn.style.backgroundColor = 'rgba(15, 22, 38, 0.6)';
+            copyBtn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy';
+            
+            copyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const codeText = pre.querySelector('code')?.innerText || pre.innerText;
+                navigator.clipboard.writeText(codeText).then(() => {
+                    copyBtn.innerHTML = '<i class="bi bi-check-lg text-success me-1"></i>Copied!';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy';
+                    }, 2000);
+                });
+            });
+            pre.appendChild(copyBtn);
+        });
+
+        // 2. Action bar at bottom of assistant bubble
+        const actionBar = document.createElement('div');
+        actionBar.className = 'd-flex gap-3 mt-3 pt-2 border-top border-secondary border-opacity-5 justify-content-end align-items-center opacity-75';
+        actionBar.style.fontSize = '0.75rem';
+        
+        // Copy All Button
+        const copyAllBtn = document.createElement('button');
+        copyAllBtn.type = 'button';
+        copyAllBtn.className = 'btn btn-link p-0 text-secondary text-decoration-none d-flex align-items-center gap-1';
+        copyAllBtn.innerHTML = '<i class="bi bi-copy"></i><span>Sao chép</span>';
+        copyAllBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(msg.content).then(() => {
+                copyAllBtn.innerHTML = '<i class="bi bi-check-lg text-success"></i><span class="text-success">Đã sao chép</span>';
+                setTimeout(() => {
+                    copyAllBtn.innerHTML = '<i class="bi bi-copy"></i><span>Sao chép</span>';
+                }, 2000);
+            });
+        });
+        actionBar.appendChild(copyAllBtn);
+
+        // Regenerate Button (only if last message is from assistant)
+        if (isLast) {
+            const regenBtn = document.createElement('button');
+            regenBtn.type = 'button';
+            regenBtn.className = 'btn btn-link p-0 text-info text-decoration-none d-flex align-items-center gap-1';
+            regenBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i><span>Tạo lại</span>';
+            regenBtn.addEventListener('click', () => {
+                regenerateResponse();
+            });
+            actionBar.appendChild(regenBtn);
+        }
+        
+        bubble.appendChild(actionBar);
+    }
+
+    // Render Messages list inside screen
+    function renderMessages(messages) {
+        const messagesBox = document.getElementById("messagesBox");
+        messagesBox.innerHTML = '';
+        
+        if (messages.length === 0) {
+            messagesBox.innerHTML = `
+                <div class="text-center py-5 text-secondary opacity-50 small">
+                    Bắt đầu gửi tin nhắn để trò chuyện với Trợ lý AI.
+                </div>
+            `;
+            return;
+        }
+        
+        messages.forEach((msg, index) => {
+            const isUser = msg.role === 'user';
+            const isLast = index === messages.length - 1;
+            const outerDiv = document.createElement('div');
+            outerDiv.className = `d-flex w-100 ${isUser ? 'justify-content-end' : 'justify-content-start'}`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = `msg-bubble ${isUser ? 'msg-user' : 'msg-model'}`;
+            
+            if (isUser) {
+                bubble.innerText = msg.content;
+            } else {
+                // Use content_html pre-rendered from Python backend
+                bubble.innerHTML = msg.content_html || msg.content;
+                
+                // Scan for mermaid code blocks
+                processMermaidCodeBlocks(bubble);
+                
+                // Append action buttons (Copy code, Copy all, Regenerate)
+                appendActionButtons(bubble, msg, isLast);
+            }
+            
+            outerDiv.appendChild(bubble);
+            messagesBox.appendChild(outerDiv);
+        });
+        
+        scrollToBottom();
+    }
+
+    // Process Mermaid code blocks to render visual charts
+    function processMermaidCodeBlocks(element) {
+        const preElements = element.querySelectorAll('pre');
+        preElements.forEach((pre, index) => {
+            const code = pre.querySelector('code');
+            if (code && (code.className.includes('language-mermaid') || code.innerText.trim().startsWith('graph') || code.innerText.trim().startsWith('sequenceDiagram'))) {
+                const rawMermaidCode = code.innerText.trim();
+                
+                // Create unique ID for rendering
+                const uniqueId = `mermaid-chart-${Date.now()}-${index}`;
+                
+                // Create container to render diagram
+                const mermaidContainer = document.createElement('div');
+                mermaidContainer.className = 'mermaid-container';
+                mermaidContainer.innerHTML = `<div class="mermaid" id="${uniqueId}">${escapeHtml(rawMermaidCode)}</div>`;
+                
+                // Replace pre block with mermaid container
+                pre.parentNode.replaceChild(mermaidContainer, pre);
+                
+                // Dynamic rendering with mermaid
+                if (window.mermaid) {
+                    try {
+                        window.mermaid.run({
+                            nodes: mermaidContainer.querySelectorAll('.mermaid')
+                        });
+                    } catch (e) {
+                        console.error('Lỗi render Mermaid:', e);
+                    }
+                }
+            }
+        });
+    }
+
+    // Send Message Trigger
+    async function sendMessage(event) {
+        if (event) event.preventDefault();
+        document.getElementById('chatAlertBox').classList.add('d-none');
+        
+        const chatInput = document.getElementById("chatInput");
+        const messageText = chatInput.value.trim();
+        if (!messageText || !activeConversationId) return;
+        
+        const token = getToken();
+        const messagesBox = document.getElementById("messagesBox");
+        const typingIndicator = document.getElementById("typingIndicator");
+        const btnStop = document.getElementById("btnStopGenerating");
+        
+        // 1. Clear input field immediately
+        chatInput.value = '';
+        
+        // 2. Append User message locally in UI
+        const userDiv = document.createElement('div');
+        userDiv.className = 'd-flex w-100 justify-content-end';
+        const userBubble = document.createElement('div');
+        userBubble.className = 'msg-bubble msg-user';
+        userBubble.innerText = messageText;
+        userDiv.appendChild(userBubble);
+        messagesBox.appendChild(userDiv);
+        
+        // Scroll down
+        scrollToBottom();
+        
+        // 3. Show typing indicator and stop generating button
+        typingIndicator.classList.remove('d-none');
+        if (btnStop) btnStop.classList.remove('d-none');
+        
+        currentAbortController = new AbortController();
+        const { signal } = currentAbortController;
+        
+        try {
+            const response = await fetch(`/api/chat/conversations/${activeConversationId}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ content: messageText })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Reload messages to get updated token counts and proper rendering
+                await loadMessages(activeConversationId);
+                
+                // If it was the first message, conversation title has updated, reload list
+                const activeItem = conversations.find(c => c.id === activeConversationId);
+                if (activeItem && activeItem.title === "Cuộc trò chuyện mới") {
+                    await loadConversations();
+                    // Select item in list
+                    const updatedItem = conversations.find(c => c.id === activeConversationId);
+                    if (updatedItem) {
+                        document.getElementById('activeChatTitle').innerText = updatedItem.title;
+                    }
+                }
+            } else {
+                const errorMsg = data.detail || 'Không gửi được tin nhắn.';
+                showChatAlert(errorMsg, 'error');
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.log('Generation stopped by user.');
+            } else {
+                console.error('Lỗi gửi tin nhắn:', error);
+                showChatAlert('Lỗi kết nối máy chủ.', 'error');
+            }
+        } finally {
+            typingIndicator.classList.add('d-none');
+            if (btnStop) btnStop.classList.add('d-none');
+            currentAbortController = null;
+            scrollToBottom();
+        }
+    }
+
+    // Quick Suggestion Trigger
+    async function startQuickChat(promptText) {
+        document.getElementById('chatAlertBox').classList.add('d-none');
+        // Create new conversation session first
+        const token = getToken();
+        
+        try {
+            const response = await fetch('/api/chat/conversations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ title: "Cuộc trò chuyện mới" })
+            });
+            
+            if (response.ok) {
+                const newConv = await response.json();
+                activeConversationId = newConv.id;
+                
+                await loadConversations();
+                await selectConversation(newConv.id);
+                
+                // Put text into input field and submit it
+                document.getElementById("chatInput").value = promptText;
+                await sendMessage();
+            } else {
+                showChatAlert('Không thể tạo cuộc trò chuyện mới.', 'error');
+            }
+        } catch (error) {
+            console.error('Lỗi khi tạo cuộc trò chuyện:', error);
+            showChatAlert('Lỗi kết nối máy chủ.', 'error');
+        }
+    }
+
+    // Delete Conversation Session
+    async function deleteConversation(event, convId) {
+        // Prevent trigger selectConversation
+        event.stopPropagation();
+        
+        const token = getToken();
+        if (!confirm("Bạn có chắc chắn muốn xóa cuộc trò chuyện này?")) return;
+        
+        try {
+            const response = await fetch(`/api/chat/conversations/${convId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.status === 204) {
+                if (activeConversationId === convId) {
+                    activeConversationId = null;
+                    document.getElementById('welcomePanel').classList.remove('d-none');
+                    document.getElementById('activeChatScreen').classList.add('d-none');
+                }
+                
+                await loadConversations();
+            } else {
+                showChatAlert('Xóa cuộc trò chuyện thất bại.', 'error');
+            }
+        } catch (error) {
+            console.error('Lỗi khi xóa cuộc trò chuyện:', error);
+            showChatAlert('Lỗi kết nối máy chủ.', 'error');
+        }
+    }
+
+    // Scroll chat panel to bottom
+    function scrollToBottom() {
+        const container = document.getElementById("messagesBox");
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // Scroll chat panel to bottom smoothly
+    function scrollToBottomSmooth() {
+        const container = document.getElementById("messagesBox");
+        container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+
+    // Show custom chat alert
+    function showChatAlert(message, type) {
+        const alertBox = document.getElementById('chatAlertBox');
+        const alertIcon = document.getElementById('chatAlertIcon');
+        const alertMessage = document.getElementById('chatAlertMessage');
+        
+        alertMessage.innerHTML = message;
+        alertBox.classList.remove('d-none');
+        
+        if (type === 'success') {
+            alertBox.className = 'alert alert-custom alert-success';
+            alertIcon.className = 'bi bi-check-circle-fill text-success';
+        } else {
+            alertBox.className = 'alert alert-custom alert-danger';
+            alertIcon.className = 'bi bi-exclamation-triangle-fill text-danger';
+        }
+        
+        // Auto scroll window to see alert if needed
+        alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+</script>
+{% endblock extra_js %}
