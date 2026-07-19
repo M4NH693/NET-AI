@@ -1,0 +1,234 @@
+/* Pygments syntax highlighting styles */
+.codehilite {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+    overflow-x: auto;
+}
+
+.codehilite pre {
+    margin: 0;
+    padding: 0;
+    background: transparent !important;
+    border: none !important;
+}
+
+.codehilite .k {
+    color: #ff7b72;
+    font-weight: bold;
+}
+
+/* Keyword */
+.codehilite .n {
+    color: #c9d1d9;
+}
+
+/* Name */
+.codehilite .s {
+    color: #a5d6ff;
+}
+
+/* String */
+.codehilite .c {
+    color: #8b949e;
+    font-style: italic;
+}
+
+/* Comment */
+.codehilite .nt {
+    color: #7ee787;
+}
+
+/* Tag */
+.codehilite .o {
+    color: #ff7b72;
+}
+
+/* Operator */
+.codehilite .m {
+    color: #a5d6ff;
+}
+
+/* Number */
+.codehilite .nb {
+    color: #79c0ff;
+}
+
+/* Built-in */
+.codehilite .nf {
+    color: #d2a8ff;
+}
+
+/* Function */
+
+/* Premium Chat Page Layout */
+main.py-5 {
+    padding: 0 !important;
+    height: calc(100vh - 113px) !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-container-fullscreen {
+    height: 100%;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-wrapper {
+    flex: 1;
+    background: rgba(15, 22, 38, 0.4);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    overflow: hidden;
+    width: 100%;
+    margin: 0 !important;
+}
+
+.sidebar-conversations {
+    background: rgba(11, 15, 25, 0.6);
+    overflow-y: auto;
+}
+
+.conversation-item {
+    transition: all 0.25s ease;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.conversation-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.conversation-item.active {
+    background: rgba(0, 198, 255, 0.08);
+    border-color: rgba(0, 198, 255, 0.2);
+}
+
+.chat-messages-container {
+    overflow-y: auto;
+    flex-grow: 1;
+    scroll-behavior: smooth;
+}
+
+/* Message styling */
+.msg-bubble {
+    max-width: 80%;
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.msg-user {
+    background: var(--primary-gradient);
+    color: white;
+    border-bottom-right-radius: 2px;
+    box-shadow: 0 4px 15px rgba(0, 198, 255, 0.2);
+}
+
+.msg-model {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: #e2e8f0;
+    border-bottom-left-radius: 2px;
+}
+
+.msg-model pre {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+    overflow-x: auto;
+}
+
+.msg-model code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+}
+
+.chat-input-area {
+    background: rgba(11, 15, 25, 0.8);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Quick suggestions card */
+.suggestion-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.suggestion-card:hover {
+    background: rgba(0, 198, 255, 0.05);
+    border-color: rgba(0, 198, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Mermaid diagram container */
+.mermaid-container {
+    background: rgba(15, 22, 38, 0.6);
+    border: 1px solid rgba(0, 198, 255, 0.15);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+    text-align: center;
+    overflow-x: auto;
+}
+
+/* Typing indicator */
+.typing-indicator span {
+    height: 8px;
+    width: 8px;
+    float: left;
+    margin: 0 1px;
+    background-color: #94a3b8;
+    display: block;
+    border-radius: 50%;
+    opacity: 0.4;
+    animation: typing 1s infinite;
+}
+
+.typing-indicator span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0% {
+        transform: translateY(0px);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: translateY(-5px);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(0px);
+        opacity: 0.4;
+    }
+}

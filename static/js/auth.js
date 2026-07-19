@@ -26,7 +26,7 @@ function logout() {
 }
 
 // Fetch current user from API
-async function getCurrentUser() {
+async function getCurrentUser(signal) {
     const token = getToken();
     if (!token) return null;
 
@@ -35,7 +35,8 @@ async function getCurrentUser() {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`
-            }
+            },
+            signal: signal
         });
         if (response.ok) {
             return await response.json();
@@ -45,7 +46,11 @@ async function getCurrentUser() {
             return null;
         }
     } catch (error) {
-        console.error('Error fetching user:', error);
+        if (error.name === 'AbortError') {
+            console.log('Fetch current user aborted');
+        } else {
+            console.error('Error fetching user:', error);
+        }
         return null;
     }
 }
@@ -90,8 +95,8 @@ async function updateNavbar() {
 }
 
 // Redirect if not authenticated (for protected pages)
-async function checkAuth(protectedPage = true) {
-    const user = await getCurrentUser();
+async function checkAuth(protectedPage = true, signal) {
+    const user = await getCurrentUser(signal);
     
     if (protectedPage && !user) {
         // Redirect to login if user is not logged in on a protected page

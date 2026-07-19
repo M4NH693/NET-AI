@@ -4,6 +4,7 @@ import logging
 from uuid import UUID
 from datetime import datetime, timezone
 from pathlib import Path
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from dotenv import load_dotenv
 load_dotenv(override=True)
