@@ -3,6 +3,7 @@ from .user import (
     UserCreate,
     UserUpdate,
     UserResponse,
+    ProfileUpdate,
 )
 
 from .auth import (
@@ -10,6 +11,7 @@ from .auth import (
     ChangePasswordRequest,
     ForgotPasswordRequest,
     ResetPasswordRequest,
+    ResetPasswordOTPRequest,
 )
 
 from .token import (
@@ -18,21 +20,33 @@ from .token import (
     TokenPayload,
 )
 
+from .chat import (
+    ConversationCreate,
+    ConversationResponse,
+    MessageSend,
+    MessageResponse,
+)
+
 __all__ = [
     # User
     "UserBase",
     "UserCreate",
     "UserUpdate",
     "UserResponse",
-
+    "ProfileUpdate",
     # Auth
     "LoginRequest",
     "ChangePasswordRequest",
     "ForgotPasswordRequest",
     "ResetPasswordRequest",
-
+    "ResetPasswordOTPRequest",
     # Token
     "TokenResponse",
     "RefreshTokenRequest",
     "TokenPayload",
+    # Chat
+    "ConversationCreate",
+    "ConversationResponse",
+    "MessageSend",
+    "MessageResponse",
 ]

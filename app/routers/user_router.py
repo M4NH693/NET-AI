@@ -5,12 +5,12 @@ from starlette.concurrency import run_in_threadpool
 import io
 from PIL import Image
 
-from datasabe import get_db
-from models.user import User
-from schemas.user import UserResponse
+from app.database import get_db
+from app.models.user import User
+from app.schemas.user import UserResponse
 from app.auth import get_current_active_user
-from config import settings
-from image_utils import process_profile_image, delete_profile_image
+from app.config import settings
+from app.services.image_service import process_profile_image, delete_profile_image
 
 router = APIRouter(tags=["User Profile Views & Actions"])
 templates = Jinja2Templates(directory="templates")
@@ -24,6 +24,7 @@ async def account_page(request: Request):
         {"title": "Tài khoản của tôi"},
     )
 
+
 @router.get("/forgot-password", include_in_schema=False, name="forgot_password")
 async def forgot_password_page(request: Request):
     return templates.TemplateResponse(
@@ -31,6 +32,7 @@ async def forgot_password_page(request: Request):
         "forgot_password.html",
         {"title": "Quên mật khẩu"},
     )
+
 
 @router.post("/api/auth/avatar", response_model=UserResponse)
 async def upload_avatar(
@@ -84,6 +86,7 @@ async def upload_avatar(
     await db.refresh(current_user)
     
     return current_user
+
 
 @router.get("/chat", include_in_schema=False, name="chat")
 async def chat_page(request: Request):

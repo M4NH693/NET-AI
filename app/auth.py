@@ -10,8 +10,8 @@ from fastapi.security import APIKeyCookie
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from datasabe import get_db
-from models.user import User
+from app.database import get_db
+from app.models.user import User
 
 SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("JWT_SECRET_KEY") or "super-secret-key-for-jwt-tokens-123456"
 ALGORITHM = "HS256"

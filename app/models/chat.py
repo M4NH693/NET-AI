@@ -3,7 +3,9 @@ from uuid import uuid4
 from sqlalchemy import String, DateTime, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datasabe import Base
+
+from app.database import Base
+
 
 class ChatConversation(Base):
     __tablename__ = "chat_conversations"
@@ -52,6 +54,7 @@ class ChatConversation(Base):
         cascade="all, delete-orphan",
         order_by="ChatMessage.created_at.asc()",
     )
+
 
 class ChatMessage(Base):
     __tablename__ = "chat_messages"

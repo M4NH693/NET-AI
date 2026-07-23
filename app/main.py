@@ -20,12 +20,12 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
-import models
-from datasabe import Base, engine, get_db
+import app.models
+from app.database import Base, engine, get_db
 
-from app.router.auth_router import router as auth_router
-from app.router.user_router import router as user_router
-from app.router.chat_router import router as chat_router
+from app.routers.auth_router import router as auth_router
+from app.routers.user_router import router as user_router
+from app.routers.chat_router import router as chat_router
 
 import time
 from datetime import datetime

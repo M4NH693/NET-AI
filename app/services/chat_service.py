@@ -16,7 +16,7 @@ from app.ai.token_estimator import estimate_tokens
 from app.ai.prompt_builder import PromptBuilder
 from app.ai.message_formatter import MessageFormatter
 from app.services.llm import get_llm
-from models.chat import ChatConversation, ChatMessage
+from app.models.chat import ChatConversation, ChatMessage
 
 # Configure Logging for LLM operations
 logs_dir = Path("logs")

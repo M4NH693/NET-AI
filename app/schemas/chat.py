@@ -2,8 +2,10 @@ from pydantic import BaseModel, ConfigDict
 from uuid import UUID
 from datetime import datetime
 
+
 class ConversationCreate(BaseModel):
     title: str | None = "Cuộc trò chuyện mới"
+
 
 class ConversationResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -14,8 +16,10 @@ class ConversationResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
 class MessageSend(BaseModel):
     content: str
+
 
 class MessageResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)

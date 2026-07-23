@@ -36,6 +36,7 @@ class UserResponse(UserBase):
     updated_at: datetime
     last_login_at: datetime | None
 
+
 class ProfileUpdate(BaseModel):
     full_name: str | None = Field(default=None, max_length=100)
     password: str | None = Field(default=None, min_length=8)

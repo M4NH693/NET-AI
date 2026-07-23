@@ -1,7 +1,7 @@
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
-from models.chat import ChatMessage
+from app.models.chat import ChatMessage
 
 class MessageRepository:
     @staticmethod

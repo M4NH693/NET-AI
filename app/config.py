@@ -13,4 +13,5 @@ class Settings(BaseSettings):
     secret_key: SecretStr
 
     max_upload_size_bytes: int = 5 * 1024 *1024
+
 settings = Settings() 

@@ -2,7 +2,7 @@ from uuid import UUID
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from models.chat import ChatConversation
+from app.models.chat import ChatConversation
 
 class ConversationRepository:
     @staticmethod
