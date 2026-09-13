@@ -4,6 +4,8 @@ from .user_role import UserRole
 from .refresh_token import RefreshToken
 from .login_history import LoginHistory
 from .chat import ChatConversation, ChatMessage
+from .document import Document
+from .document_chunk import DocumentChunk
 
 __all__ = [
     "User",
@@ -13,4 +15,6 @@ __all__ = [
     "LoginHistory",
     "ChatConversation",
     "ChatMessage",
+    "Document",
+    "DocumentChunk",
 ]
